@@ -38,23 +38,6 @@ export function CareerSection() {
             </article>
           ))}
         </div>
-        <aside className="pt-2 max-[640px]:mt-[5px] max-[640px]:grid max-[640px]:grid-cols-2 max-[640px]:border-t max-[640px]:border-line max-[640px]:pt-[25px]">
-          <span className="text-[#777982] max-[640px]:hidden">—</span>
-          <p className="mt-[15px] mb-7 text-[18px] leading-[1.6] tracking-[-0.4px] max-[1200px]:text-[16px] max-[640px]:m-0 max-[640px]:text-[17px]">
-            좋은 서비스를
-            <br />더 많은 사람들에게,
-            <br />더 오래 사용할 수 있도록.
-          </p>
-          <div className="text-[14px] leading-[1.55] text-[#a1a2a8] max-[640px]:justify-self-end max-[640px]:pr-5 max-[640px]:text-[13px]">
-            Product
-            <br />
-            Performance
-            <br />
-            Architecture
-            <br />
-            Operation
-          </div>
-        </aside>
       </div>
     </section>
   );
