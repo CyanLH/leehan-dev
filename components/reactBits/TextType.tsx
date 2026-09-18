@@ -5,11 +5,11 @@ import {
   useEffect,
   useRef,
   useState,
-  createElement,
   useMemo,
   useCallback,
 } from "react";
 import { gsap } from "gsap";
+import { tokenizeTypeScript } from "./codeTokens";
 
 interface TextTypeProps {
   className?: string;
@@ -30,6 +30,7 @@ interface TextTypeProps {
   onSentenceComplete?: (sentence: string, index: number) => void;
   startOnVisible?: boolean;
   reverseMode?: boolean;
+  syntaxLanguage?: "typescript";
 }
 
 const TextType = ({
@@ -51,6 +52,7 @@ const TextType = ({
   onSentenceComplete,
   startOnVisible = false,
   reverseMode = false,
+  syntaxLanguage,
   ...props
 }: TextTypeProps & React.HTMLAttributes<HTMLElement>) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -65,6 +67,14 @@ const TextType = ({
     () => (Array.isArray(text) ? text : [text]),
     [text],
   );
+
+  const codeTokens = useMemo(() => {
+    if (!syntaxLanguage) return [];
+    const source = textArray[currentTextIndex];
+    return tokenizeTypeScript(
+      reverseMode ? source.split("").reverse().join("") : source,
+    );
+  }, [syntaxLanguage, textArray, currentTextIndex, reverseMode]);
 
   const getRandomSpeed = useCallback(() => {
     if (!variableSpeed) return typingSpeed;
@@ -98,13 +108,16 @@ const TextType = ({
   useEffect(() => {
     if (showCursor && cursorRef.current) {
       gsap.set(cursorRef.current, { opacity: 1 });
-      gsap.to(cursorRef.current, {
+      const animation = gsap.to(cursorRef.current, {
         opacity: 0,
         duration: cursorBlinkDuration,
         repeat: -1,
         yoyo: true,
         ease: "power2.inOut",
       });
+      return () => {
+        animation.kill();
+      };
     }
   }, [showCursor, cursorBlinkDuration]);
 
@@ -180,33 +193,42 @@ const TextType = ({
     reverseMode,
     variableSpeed,
     onSentenceComplete,
+    getRandomSpeed,
   ]);
 
   const shouldHideCursor =
     hideCursorWhileTyping &&
     (currentCharIndex < textArray[currentTextIndex].length || isDeleting);
 
-  return createElement(
-    Component,
-    {
-      ref: containerRef,
-      className: `inline-block whitespace-pre-wrap tracking-tight ${className}`,
-      ...props,
-    },
-    <code
-      className="inline"
-      style={{ color: getCurrentTextColor() || "inherit" }}
+  return (
+    <Component
+      ref={containerRef}
+      className={`inline-block ${syntaxLanguage ? "whitespace-pre" : "whitespace-pre-wrap tracking-tight"} ${className}`}
+      {...props}
     >
-      {displayedText}
-    </code>,
-    showCursor && (
-      <span
-        ref={cursorRef}
-        className={`ml-1 inline-block opacity-100 ${shouldHideCursor ? "hidden" : ""} ${cursorClassName}`}
+      <code
+        className="inline"
+        style={{ color: getCurrentTextColor() || "inherit" }}
       >
-        {cursorCharacter}
-      </span>
-    ),
+        {syntaxLanguage
+          ? codeTokens
+              .filter((token) => token.start < displayedText.length)
+              .map((token) => (
+                <span key={token.start} className={token.className}>
+                  {token.text.slice(0, displayedText.length - token.start)}
+                </span>
+              ))
+          : displayedText}
+      </code>
+      {showCursor && (
+        <span
+          ref={cursorRef}
+          className={`ml-1 inline-block opacity-100 ${shouldHideCursor ? "hidden" : ""} ${cursorClassName}`}
+        >
+          {cursorCharacter}
+        </span>
+      )}
+    </Component>
   );
 };
 

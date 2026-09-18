@@ -1,5 +1,5 @@
 import { Arrow, textLinkClassName } from "./shared";
-import TextType from "@/components/reactBits/TextType";
+import { HeroCodeEditor } from "./HeroCodeEditor";
 
 export function HeroSection() {
   return (
@@ -42,49 +42,7 @@ export function HeroSection() {
           </a>
         </div>
       </div>
-      <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50/80">
-        <div className="flex h-10 items-center border-b border-zinc-200 px-4">
-          <span className="font-mono text-xs text-zinc-400">~/leehan.ts</span>
-        </div>
-        <div className="flex gap-4">
-          <div className="py-5 px-3 border-r border-zinc-200 text-zinc-400">
-            {new Array(20).fill(0).map((_, i) => (
-              <pre
-                className="overflow-x-auto font-mono text-[13px] leading-6 text-right"
-                key={`line_number_${i + 1}`}
-              >
-                {i + 1}
-              </pre>
-            ))}
-          </div>
-
-          <pre className="overflow-x-auto py-5 font-mono text-[13px] leading-6">
-            <TextType
-              text={`const leehan = {
-  role: "Frontend Engineer",
-  experience: "6+ years",
-  basedIn: "Seoul, Korea",
-
-  core: [
-    "Next.js",
-    "React",
-    "TypeScript",
-  ],
-
-  focus: [
-    "Product",
-    "Performance",
-    "Architecture",
-    "Operation",
-  ],
-
-  philosophy: "Build fast. Scale well. Operate longer.",
-};`}
-              loop={false}
-            />
-          </pre>
-        </div>
-      </div>
+      <HeroCodeEditor />
     </section>
   );
 }
