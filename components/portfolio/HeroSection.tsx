@@ -8,7 +8,7 @@ export function HeroSection() {
       aria-labelledby="hero-title"
     >
       <div>
-        <p className="text-[20px] tracking-[-0.3px] text-accent max-[1200px]:text-[17px]">
+        <p className="text-[20px] tracking-[-0.3px] text-accent max-[1200px]:text-[17px] font-semibold">
           Frontend Engineer
         </p>
         <h1

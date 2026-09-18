@@ -42,7 +42,7 @@ export function SectionHeading({
     <div className="mb-[21px] flex items-center justify-between">
       <h2
         id={id}
-        className="text-[16px] font-normal tracking-[0.5px] text-[#383a43] max-[640px]:text-[14px]"
+        className="text-[16px] font-semibold tracking-[0.5px] text-[#383a43] max-[640px]:text-[14px]"
       >
         {children}
       </h2>
