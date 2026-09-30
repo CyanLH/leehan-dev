@@ -38,8 +38,17 @@ export function createRunner(width: number): RunnerState {
   };
 }
 export function speedAt(elapsed: number) {
-  return Math.min(300, 160 + elapsed * 4);
+  // Keep accelerating beyond the opening minute without an abrupt level change.
+  return Math.min(460, 170 + elapsed * 5);
 }
+
+const OBSTACLE_TYPES = [
+  { after: 0, width: 30, height: 34, labels: ["500", "404", "BUG"] },
+  { after: 8, width: 36, height: 62, labels: ["OOM", "CVE"] },
+  { after: 18, width: 80, height: 40, labels: ["HYDRATION", "DEADLOCK"] },
+  { after: 30, width: 112, height: 30, labels: ["404  500", "BUG  BUG"] },
+  { after: 42, width: 42, height: 80, labels: ["STACK", "PANIC"] },
+] as const;
 export function scoreOf(state: RunnerState) {
   return Math.floor(state.distance / 4);
 }
@@ -80,20 +89,19 @@ export function stepRunner(
   state.spawnDistance -= movement;
   if (state.spawnDistance > 0) return;
 
-  const labels =
-    state.elapsed > 18 && random() < 0.2
-      ? ["MERGE", "HYDRATION"]
-      : ["500", "404", "CORS", "CVE", "OOM", "ANY", "BUG"];
+  const available = OBSTACLE_TYPES.filter(
+    (type) => state.elapsed >= type.after,
+  );
+  const { width, height, labels } =
+    available[Math.floor(random() * available.length)];
   const label = labels[Math.floor(random() * labels.length)];
   const slot = Array.from({ length: POOL_SIZE }, (_, index) => index).find(
     (index) => !state.obstacles.some((obstacle) => obstacle.slot === index),
   );
   if (slot === undefined) return;
-  const width = Math.max(30, label.length * 8);
-  const height = label.length > 4 ? 48 : 38;
   state.obstacles.push({ slot, x: state.width + 24, width, height, label });
-  // Minimum gap exceeds a full jump (~0.77s) plus recovery and input reaction time.
-  const gapSeconds =
-    Math.max(1.25, 1.95 - state.elapsed * 0.014) + random() * 0.45;
+  // Even at maximum speed, each obstacle leaves a full jump (~0.77s)
+  // plus recovery. Wide barriers are one jump, never a forced double jump.
+  const gapSeconds = Math.max(0.9, 1.8 - state.elapsed * 0.02) + random() * 0.4;
   state.spawnDistance = width + speed * gapSeconds;
 }

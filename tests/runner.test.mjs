@@ -83,48 +83,55 @@ test("score increases and speed has a smooth upper bound", () => {
   advance(state, 2);
   assert.ok(scoreOf(state) > 0);
   assert.ok(speedAt(25) > speedAt(0));
-  assert.equal(speedAt(1000), 300);
+  assert.ok(speedAt(50) > speedAt(35));
+  assert.equal(speedAt(1000), 460);
   assert.equal(scoreOf(createRunner(335)), 0);
 });
 
-test("narrow and wide arenas remain playable for 90 seconds with fair jump timing", () => {
+test("narrow and wide arenas remain playable for 120 seconds with fair jump timing", () => {
   for (const width of [280, 335, 700]) {
-    let seed = 42;
-    const random = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
-    const state = createRunner(width);
-    let cleared = 0;
-    for (let t = 0; t < 90; t += FIXED_STEP) {
-      const obstacle = state.obstacles.find(
-        (o) => o.x + o.width > PLAYER_X + 3,
-      );
-      if (obstacle && state.y === 0) {
-        const speed = speedAt(state.elapsed);
-        const crossingDuration = (obstacle.width + PLAYER_WIDTH - 12) / speed;
-        const ascentToHeight =
-          (JUMP_VELOCITY -
-            Math.sqrt(JUMP_VELOCITY ** 2 - 2 * GRAVITY * obstacle.height)) /
-          GRAVITY;
-        const flight = (2 * JUMP_VELOCITY) / GRAVITY;
-        assert.ok(
-          crossingDuration < flight - 2 * ascentToHeight,
-          "obstacle is jumpable",
+    for (const initialSeed of [1, 42, 2026, 99173]) {
+      let seed = initialSeed;
+      const random = () =>
+        (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
+      const state = createRunner(width);
+      let cleared = 0;
+      const shapes = new Set();
+      for (let t = 0; t < 120; t += FIXED_STEP) {
+        const obstacle = state.obstacles.find(
+          (o) => o.x + o.width > PLAYER_X + 3,
         );
-        const jumpLead = (flight - crossingDuration) / 2;
-        const timeToContact =
-          (obstacle.x + 3 - (PLAYER_X + PLAYER_WIDTH - 3)) / speed;
-        if (timeToContact <= jumpLead) {
-          jump(state);
-          cleared++;
+        if (obstacle && state.y === 0) {
+          shapes.add(`${obstacle.width}x${obstacle.height}`);
+          const speed = speedAt(state.elapsed);
+          const crossingDuration = (obstacle.width + PLAYER_WIDTH - 12) / speed;
+          const ascentToHeight =
+            (JUMP_VELOCITY -
+              Math.sqrt(JUMP_VELOCITY ** 2 - 2 * GRAVITY * obstacle.height)) /
+            GRAVITY;
+          const flight = (2 * JUMP_VELOCITY) / GRAVITY;
+          assert.ok(
+            crossingDuration < flight - 2 * ascentToHeight,
+            "obstacle is jumpable",
+          );
+          const jumpLead = (flight - crossingDuration) / 2;
+          const timeToContact =
+            (obstacle.x + 3 - (PLAYER_X + PLAYER_WIDTH - 3)) / speed;
+          if (timeToContact <= jumpLead) {
+            jump(state);
+            cleared++;
+          }
         }
+        stepRunner(state, FIXED_STEP, random);
+        assert.equal(
+          state.killedBy,
+          null,
+          `unfair collision at ${t.toFixed(2)}s / ${width}px`,
+        );
+        assert.ok(state.obstacles.length <= 8);
       }
-      stepRunner(state, FIXED_STEP, random);
-      assert.equal(
-        state.killedBy,
-        null,
-        `unfair collision at ${t.toFixed(2)}s / ${width}px`,
-      );
-      assert.ok(state.obstacles.length <= 8);
+      assert.ok(cleared > 60);
+      assert.equal(shapes.size, 5, "all obstacle shapes appear in a long run");
     }
-    assert.ok(cleared > 25);
   }
 });

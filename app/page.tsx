@@ -1,4 +1,5 @@
 import { CareerSection } from "@/components/portfolio/CareerSection";
+import { ConsoleGreeting } from "@/components/portfolio/ConsoleGreeting";
 import { ExpertiseSection } from "@/components/portfolio/ExpertiseSection";
 import { HeroSection, StatsSection } from "@/components/portfolio/HeroSection";
 import { ImpactSection } from "@/components/portfolio/ImpactSection";
@@ -11,6 +12,7 @@ import { projects } from "@/data/portfolio";
 export default function Home() {
   return (
     <>
+      <ConsoleGreeting />
       <SiteHeader />
       <main id="home" className={shellClassName}>
         <HeroSection />
